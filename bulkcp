@@ -1,0 +1,356 @@
+#!/bin/bash
+#
+#------------------------------------------------------------------------------
+# File:         bulkcp
+#
+# Description:  Copies files using a CSV file as input.
+#
+# Usage:        bulkcp CSV_FILE
+#
+# Revisions:    2020-10-02 - (Mad About Brighton) Created.
+#
+# References:   https://madaboutbrighton.net
+#------------------------------------------------------------------------------
+
+# Default options.
+is_dry_run=0
+is_verbose=0
+has_header=1
+csv_path=""
+remote_host=""
+notify=""
+
+#######################################
+# Sets the commandline arguments as global variables.
+# Globals:
+#   is_dry_run, is_verbose, is_move, 
+#   path_source, path_dest, notify
+# Arguments:
+#   The commandline arguments, a string.
+# Example:
+#   get_options "$@"
+#######################################
+get_options() {
+  while getopts "h:nt:v-:" opt; do
+      case "${opt}" in
+      -)
+        case "${OPTARG}" in
+          dry-run)
+            is_dry_run=1;
+            ;;
+          no-header)
+            has_header=0;
+            ;;
+          notify)
+            notify="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+            ;;
+          remote-host)
+            remote_host="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+            ;;
+          verbose)
+            is_verbose=1;
+            ;;
+          esac;;      
+      h)
+        remote_host="${OPTARG}"
+        ;;
+      n)
+        is_dry_run=1
+        ;;
+      t)
+        notify="${OPTARG}"
+        ;;
+      v)
+        is_verbose=1
+        ;;
+      esac
+  done
+  
+  shift $(($OPTIND - 1))
+  
+  # Convert relative to absolute paths.
+  # [csv_path] is required and MUST exist.
+  csv_path=$(readlink -e "${1}")
+  
+  # Show all the arguments/options when [is_dry_run].
+  if [ "${is_dry_run}" -eq 1 ]; then
+    message "is_dry_run=${is_dry_run}"
+    message "is_verbose=${is_verbose}"
+    message "remote_host=${remote_host}"
+    message "notify=${notify}"
+    message "csv_path=${csv_path}"
+    message "has_header=${has_header}"
+  fi
+}
+
+#######################################
+# Outputs a message, even if not [is_verbose].
+# Arguments: 
+#   The message to be displayed, a string.
+# Example:
+#   err "My error message"
+#######################################
+err() {
+  echo "$*" >&2
+}
+
+#######################################
+# Outputs a message, when [is_verbose] or [is_dry_run].
+# Globals:
+#   is_dry_run, is_verbose
+# Arguments: 
+#   The message to be displayed, a string.
+# Example:
+#   message "My message"
+#######################################
+message() {
+  if [ "${is_verbose}" -eq 1 ] || [ "${is_dry_run}" -eq 1 ]; then
+    echo "$*" >&2
+  fi
+}
+
+#######################################
+# Sends a message to a service.
+# Arguments: 
+#   The name of the sender, a string.
+#   The reciever, a string.
+#   The message to be displayed, a string.
+# Example:
+#   notify "myscript" "https://hooks.slack.com/services/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" "The script is complete!"
+#######################################
+notify() {
+  local -r FROM="${1}"
+  local -r TO="${2}"
+  local -r MESSAGE="${3}"
+
+  # Check if the reciever is a Slack Webhook URL.
+  if [[ $TO =~ "hooks.slack.com" ]]; then
+     $(notify_slack "${FROM}" "${TO}" "${MESSAGE}" &> /dev/null)
+  fi
+}
+
+#######################################
+# Sends a message to a Slack.
+# Arguments: 
+#   The name of the sender, a string.
+#   The Webhook URL, a string.
+#   The message to be displayed, a string.
+# References:
+#   https://api.slack.com/messaging/webhooks
+# Example:
+#   notify_slack "myscript" "https://hooks.slack.com/services/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" "The script is complete!"
+#######################################
+notify_slack() {
+  local -r FROM="${1}"
+  local -r WEBHOOK_URL="${2}"
+  local -r MESSAGE="${3}"
+  
+  # Use plain text, as blocks using markdown are not properly supported yet.
+  curl -X POST -sH 'Content-type: application/json' --data "{'text':'${FROM}: ${MESSAGE}'}" "${WEBHOOK_URL}"
+}
+
+#######################################
+# Loops through the rows of a CSV file, counting the rows
+# that are NOT flagged as complete.
+# Arguments: 
+#   The path of the CSV file, a string.
+#   Whether the CSV file has a header row, an integer.
+# Returns:
+#   The total number of rows that are NOT flagged as complete, an integer.
+# Example:
+#   count_csv_rows_to_process my_csv_file.csv 1
+#######################################
+count_csv_rows_to_process() {
+  local -r CSV_PATH="${1}"
+  local -r HAS_HEADER="${2}"
+    
+  # Check that csv file exists.
+  if [ ! -f "${CSV_PATH}" ]; then
+    err "Error - cannot find $CSV_PATH" 
+    exit 1
+  fi
+
+  local total=0
+  local is_header=0
+  
+  if [ "${HAS_HEADER}" -eq 1 ]; then is_header=1; fi
+
+  # Obtain total number of rows to be processed.
+  while IFS="," read vname vdone
+  do
+    if [ "${is_header}" -eq 1 ]; then
+      # Ignore the header row.
+      is_header=0
+    else
+      # Count rows that are not flagged as complete.
+      if [ "$vdone" != "Y" ]; then
+        total=$(($total + 1))
+      fi
+    fi
+  done < $CSV_PATH
+  
+  echo "${total}"  
+  
+}
+
+#######################################
+# Loops through the rows of a CSV file, counting the rows
+# that are NOT flagged as complete.
+# Arguments: 
+#   The path of the CSV file, a string.
+#   Whether the CSV file has a header row, an integer.
+# Returns:
+#   The total number of rows that are NOT flagged as complete, an integer.
+# Example:
+#   count_csv_rows_to_process my_csv_file.csv 1
+#######################################
+process_csv() {
+  local -r CSV_PATH="${1}"
+  local -r REMOTE_HOST="${2}"
+  local -r HAS_HEADER="${3}"
+  local -r TOTAL="${4}"
+    
+  # Check that csv file exists.
+  if [ ! -f "$CSV_PATH" ]; then
+    err "Error - could not find ${CSV_PATH}" 
+    exit 1
+  fi
+
+  # The total number of items to be processed
+  local total=0
+  # Count of items attempted to be processed.
+  local count=0
+  # Whether the current row is the header row.
+  local is_header=0
+  
+  if [ "${HAS_HEADER}" -eq 1 ]; then is_header=1; fi
+
+  # Obtain total number of rows to be processed.
+  while IFS="," read vname vdone vsrc vdest
+  do
+    if [ "${is_header}" -eq 1 ]; then
+      # Ignore the header row.
+      is_header=0
+    else
+      # Count rows that are not flagged as complete.
+      if [ "$vdone" != "Y" ]; then
+        # Increment the counter.
+        count=$((count+1))
+                        
+        # Trim any carriage return from the last field.
+        vdest="${vdest//$'\r'}"
+        
+        # Trim the paths in case they are wrapped in double quotes.
+        vsrc=$(trim_double_quotes "${vsrc}")
+        vdest=$(trim_double_quotes "${vdest}")
+        vname=$(trim_double_quotes "${vname}")
+        
+        local source_basename=$(basename "$vsrc")
+        local source_directory=$(dirname "$vsrc")
+
+        message "Processing ${count} of ${TOTAL} - ${vname}..."
+
+        if [ ! -d "${source_directory}" ]; then
+          err "  - could not find ${source_directory}" 
+          continue
+        fi
+        
+        if [ "${is_dry_run}" -eq 1 ]; then continue; fi
+        
+        # Copying to a remote host is done using [scp], whilst local copying uses [cp].
+        if [ -n "${REMOTE_HOST}" ]; then
+          # Escape spaces for ssh/scp.
+          vdest=$(printf %q "$vdest")
+          # Create destination directory if it doesn't already exist.
+          ssh "${REMOTE_HOST}" mkdir -p "${vdest}" < /dev/null
+          # Check that destination directory exists.
+          if [ $(ssh "${REMOTE_HOST}" find "${vdest}" -maxdepth 1 < /dev/null | wc -l) -eq 0 ]; then
+            err "  - could not create ${vdest}"
+            continue
+          fi
+        else
+          # Create destination directory if it doesn't already exist.
+          mkdir -p "${vdest}"
+          # Check that destination directory exists.
+          if [ ! -d "${vdest}" ]; then
+            err "Error - could not create ${vdest}"
+            continue
+          fi
+        fi
+      
+        # Use [find] in case wildcards are used, which will possibly mean multiple files.
+        # Loop through the found files.
+        # https://stackoverflow.com/questions/23356779/how-can-i-store-the-find-command-results-as-an-array-in-bash
+        while IFS=  read -r -d $'\0'; do
+          if [ -n "${REMOTE_HOST}" ]; then
+            scp -r "${REPLY}" "${REMOTE_HOST}":"${vdest}" || err "  - Could not copy ${vname}"
+          else
+            cp -ru "${REPLY}" "${vdest}" || err "  - Could not copy ${vname}"
+          fi
+        done < <(find "${source_directory}" -maxdepth 1 -name "${source_basename}" -print0)
+      fi
+    fi
+  done < "${CSV_PATH}"
+  
+  echo "${count}"  
+}
+
+#######################################
+# Trim the leading and trailing double quotes from a string.
+# Arguments:
+#   The string to be trimmed.
+# Returns:
+#   The trimmed string.
+# Example:
+#   trim_double_quotes '"This is my quoted string"'
+#######################################
+trim_double_quotes() {
+  local -r STRING="${1}"
+  local -r quote='"'
+  
+  # Only trim the string if the quotes appear at the beginning AND end of the string.
+  if [[ "${STRING}" == "${quote}"* ]] && [[ "${STRING}" == *"${quote}" ]]; then
+    # Remove the first and last character, that is, the quotes.
+    echo "${STRING:1: -1}"
+  else
+    echo "${STRING}"
+  fi
+}
+
+#######################################
+# The script starting point.
+# Arguments:
+#   The commandline arguments, a string.
+# Example:
+#   main "$@"
+#######################################
+main() {
+  # Turn script arguments into variables.
+  get_options "$@"
+    
+  # Exit if any paths are missing.
+  if [ -z "${csv_path}" ]; then 
+    err "Error - You must specify a path for the CSV file"
+    exit 1
+  fi
+    
+  # Process the cvs file.
+  local total=$(count_csv_rows_to_process "${csv_path}" "${has_header}")
+  
+  if [ "${total}" -eq 0 ]; then
+    err "There are no items to process"
+    exit 1
+  else  
+    local complete=$(process_csv "${csv_path}" "${remote_host}" "${has_header}" "${total}")
+  fi
+  
+  local message="Completed ${complete} of ${total}"
+  
+  if [ "${is_dry_run}" -eq 1 ]; then message="Dry run. ${message}"; fi
+  
+  message "${message}"
+  
+  $(notify "bulkcp" "${notify}" "${message}")
+}
+
+main "$@"
