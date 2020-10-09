@@ -47,7 +47,7 @@ This would process `data.csv`, copying all source files specified in the CSV fil
 ```bash
 bulkcp --dry-run data.csv
 ```
-This would process `data.csv` without any changes being made to the filesystem. Verbose output will be shown printed to the terminal.
+This would process `data.csv` without any changes being made to the file system. Verbose output will be printed to the terminal.
 
 ## Options
 
@@ -57,7 +57,7 @@ The path of the CSV file to be processed. **This is required**.
 
 #### Dry run `-n `  `--dry-run `
 
-Perform a trial run with **no changes** being made to the filesystem. Verbose output will be shown printed to the terminal.
+Perform a trial run with **no changes** being made to the file system. Verbose output will be printed to the terminal.
 
 #### No header `--no-header `
 
