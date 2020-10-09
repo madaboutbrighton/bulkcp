@@ -26,7 +26,7 @@ The CSV file contains the source files to be copied and their corresponding dest
 
 | Name | Done | Source | Destination directory |
 |:---|:---:|:---|:---|
-| My first directory |   | "/some/folder/My first directory"  | /mnt/usb/data |
+| My directory |   | "/some/folder/My directory"  | /mnt/usb/data |
 | Another directory | Y | "/Some/folder/Another directory" | /mnt/usb/data |
 | Some files  |  | /some/folder/&ast;.&ast; | /mnt/usb/data/some/folder |
 
