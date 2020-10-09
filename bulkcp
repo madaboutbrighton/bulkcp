@@ -23,8 +23,8 @@ notify=""
 #######################################
 # Sets the commandline arguments as global variables.
 # Globals:
-#   is_dry_run, is_verbose, is_move, 
-#   path_source, path_dest, notify
+#   is_dry_run, has_header, notify, 
+#   remote_host, is_verbose
 # Arguments:
 #   The commandline arguments, a string.
 # Example:
@@ -76,10 +76,10 @@ get_options() {
   if [ "${is_dry_run}" -eq 1 ]; then
     message "is_dry_run=${is_dry_run}"
     message "is_verbose=${is_verbose}"
+    message "has_header=${has_header}"
     message "remote_host=${remote_host}"
     message "notify=${notify}"
     message "csv_path=${csv_path}"
-    message "has_header=${has_header}"
   fi
 }
 
