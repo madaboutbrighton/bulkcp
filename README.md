@@ -27,9 +27,8 @@ The CSV file contains the source files to be copied and their corresponding dest
 | Name | Done | Source | Destination directory |
 |:---|:---:|:---|:---|
 | My first directory |   | "/some/folder/My first directory"  | /mnt/usb/data |
-| Another directory |   | "/Some/folder/Another directory" | /mnt/usb/data |
-| Favourites  | Y | /another/folder/Favourites | /mnt/usb/data |
-| Some files  | Y | /some/folder/&ast;.&ast; | /mnt/usb/data/some/folder |
+| Another directory | Y | "/Some/folder/Another directory" | /mnt/usb/data |
+| Some files  |  | /some/folder/&ast;.&ast; | /mnt/usb/data/some/folder |
 
 A header row is expected, but optional. Use the `--no-header` option if your CSV file does not have a header row. Data inside the CSV file can be double-quoted, but this is not required unless the data contains a comma. Paths may contain wildcards (&ast;).
 
