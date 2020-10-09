@@ -25,12 +25,12 @@ sudo chmod a=rx /usr/local/bin/bulkcp
 The CSV file contains the source files to be copied and their destination directory. It should be in the following format...
 
 | NAME | DONE | SOURCE | DESTINATION DIRECTORY |
-|---|:---:|---|---|
+|:---|:---:|:---|:---|
 | My first directory |   | "/some/folder/My first directory"  | /mnt/usb/data |
 | Another directroy |   | "/Some/folder/Another directory" | /mnt/usb/data |
 | Favourites  | Y | /another/folder/Favourites | /mnt/usb/data |
 
-A header row is expected, but optional. If your CSV file does not have a header row, make sure you use the `--no-header` option. Data inside the CSV file can be double-quoted, but this is not required unless the data contains a comma. 
+A header row is expected, but optional. Use the `--no-header` option if your CSV file does not have a header row. Data inside the CSV file can be double-quoted, but this is not required unless the data contains a comma. 
 
 ## Usage
 
