@@ -32,6 +32,22 @@ The CSV file contains the source files to be copied and their corresponding dest
 
 A header row is expected, but optional. Use the `--no-header` option if your CSV file does not have a header row. Data inside the CSV file can be double-quoted, but this is not required unless the data contains a comma. 
 
+### Name
+
+The name of the directory or data to be copied. This is used for status updates.
+
+### Done
+
+A "Y" indicates that this item has already been copied. Any items with "Y" in this field are ignored.
+
+### Source
+
+The source file or directory to be copied. Directories are automatically copied recursively.
+
+### Destination directory
+
+The parent directory that the souce files and/or directories will be copied into.
+
 ## Usage
 
 ```bash
