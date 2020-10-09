@@ -6,7 +6,7 @@ The CSV file contains the source files to be copied and their destination direct
 
 ## Contents
   - [Installation](#installation)
-  - [CSV file](#csvfile)
+  - [CSV file](#csv&nbsp;file)
   - [Usage](#usage)
   - [Options](#options)
   - [FAQ](#faq)
@@ -20,7 +20,7 @@ sudo wget https://raw.githubusercontent.com/madaboutbrighton/bulkcp/master/bulkc
 sudo chmod a=rx /usr/local/bin/bulkcp
 ```
 
-## CSV file
+## CSV&nbsp;file
 
 The CSV file contains the source files to be copied and their destination directory. It should be in the following format...
 
