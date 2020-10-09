@@ -47,7 +47,7 @@ This would process `data.csv`, copying all source files specified in the CSV fil
 ```bash
 bulkcp --dry-run data.csv
 ```
-This would process `data.csv` without any changes being made to the filesystem.
+This would process `data.csv` without any changes being made to the filesystem. Verbose output will be shown printed to the terminal.
 
 ## Options
 
@@ -55,7 +55,7 @@ This would process `data.csv` without any changes being made to the filesystem.
 
 The path of the CSV file to be processed. **This is required**.
 
-#### Dry run `-n ` `--dry-run `
+#### Dry run `-n `  `--dry-run `
 
 Perform a trial run with **no changes** being made to the filesystem. Verbose output will be shown printed to the terminal.
 
@@ -63,15 +63,15 @@ Perform a trial run with **no changes** being made to the filesystem. Verbose ou
 
 Flag to indicate that the CSV file **does not** have a header row.
 
-#### Notify `-t ` `--notify `
+#### Notify `-t `  `--notify `
 
 Service to notify when script completes. Currently supports a Slack Webhook URL.
 
-#### Remote host `-h ` `--remote-host `
+#### Remote host `-h `  `--remote-host `
 
 Remote host where the files will be copied to. In the format `name@ipaddress`, for example, `myuser@192.168.1.123`. It is only possible to copy files to a remote host if you set up [ssh keys](https://www.cyberciti.biz/faq/how-to-set-up-ssh-keys-on-linux-unix/).
 
-#### Verbose `-v ` `--verbose`
+#### Verbose `-v `  `--verbose`
 
 Increase the amount of information printed to the terminal.
 
