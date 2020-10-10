@@ -182,6 +182,8 @@ count_csv_rows_to_process() {
       # Ignore the header row.
       is_header=0
     else
+      vdone=$(trim_double_quotes "${vdone}")
+    
       # Count rows that are not flagged as complete.
       if [ "$vdone" != "Y" ]; then
         total=$(($total + 1))
@@ -232,6 +234,8 @@ process_csv() {
       # Ignore the header row.
       is_header=0
     else
+      vdone=$(trim_double_quotes "${vdone}")
+    
       # Count rows that are not flagged as complete.
       if [ "$vdone" != "Y" ]; then
         # Increment the counter.
