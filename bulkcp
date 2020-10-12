@@ -176,7 +176,7 @@ count_csv_rows_to_process() {
   if [ "${HAS_HEADER}" -eq 1 ]; then is_header=1; fi
 
   # Obtain total number of rows to be processed.
-  while IFS="," read vname vdone
+  while IFS="," read vname vdone vsrc vdest
   do
     if [ "${is_header}" -eq 1 ]; then
       # Ignore the header row.
@@ -185,7 +185,7 @@ count_csv_rows_to_process() {
       vdone=$(trim_double_quotes "${vdone}")
     
       # Count rows that are not flagged as complete.
-      if [ "$vdone" != "Y" ]; then
+      if [ "${vdone}" != "Y" ]; then
         total=$(($total + 1))
       fi
     fi
@@ -237,7 +237,7 @@ process_csv() {
       vdone=$(trim_double_quotes "${vdone}")
     
       # Count rows that are not flagged as complete.
-      if [ "$vdone" != "Y" ]; then
+      if [ "${vdone}" != "Y" ]; then
         # Increment the counter.
         count=$((count+1))
                         
