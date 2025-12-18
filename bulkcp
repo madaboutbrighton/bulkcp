@@ -7,9 +7,11 @@
 #
 # Usage:        bulkcp CSV_FILE
 #
-# Revisions:    2020-10-02 - (Mad About Brighton) Created.
+# Revisions:    2025-12-17 - (Mad About Brighton) Added support for notifying Discord.
+#               2020-10-02 - (Mad About Brighton) Created.
 #
 # References:   https://madaboutbrighton.net
+#               https://github.com/madaboutbrighton/bulkcp
 #------------------------------------------------------------------------------
 
 # Default options.
@@ -110,10 +112,61 @@ message() {
 }
 
 #######################################
+# Sends a message to a Slack.
+# Arguments: 
+#   The name of the sender, a string.
+#   The Webhook URL, a string.
+#   The message to be displayed, a string.
+# References:
+#   https://api.slack.com/messaging/webhooks
+#   https://gist.github.com/loftwah/664a27ac627da7be78d62d09869d3cf2
+# Example:
+#   notify_slack "myscript" "https://hooks.slack.com/services/QWERTY123/POIUYTREWQ098ZX" "The script is complete!"
+#######################################
+notify_slack() {
+  local -r FROM="${1}"
+  local -r WEBHOOK_URL="${2}"
+  local -r MESSAGE="${3}"
+  
+  # username doesn't seem to alter the way a message is displayed.
+  request="{\"username\":\"$FROM\",\"text\":\"*$FROM:* $MESSAGE\"}"
+
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -d "$request" \
+    "${WEBHOOK_URL}"
+}
+
+#######################################
+# Sends a message to a Discord.
+# Arguments: 
+#   The name of the sender, a string.
+#   The Webhook URL, a string.
+#   The message to be displayed, a string.
+# References:
+#   https://discord.com/developers/docs/resources/webhook
+#   https://www.geeksforgeeks.org/linux-unix/using-curl-to-make-rest-api-requests
+# Example:
+#   notify_discord "myscript" "https://discord.com/api/webhooks/1234567890/qwertyuiopasdfghjk" "The script is complete!"
+#######################################
+notify_discord() {
+  local -r FROM="${1}"
+  local -r WEBHOOK_URL="${2}"
+  local -r MESSAGE="${3}"
+
+  request="{\"username\":\"$FROM\",\"content\":\"$MESSAGE\"}"
+
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -d "$request" \
+    "${WEBHOOK_URL}"
+}
+
+#######################################
 # Sends a message to a service.
 # Arguments: 
 #   The name of the sender, a string.
-#   The reciever, a string.
+#   The receiver, a string.
 #   The message to be displayed, a string.
 # Example:
 #   notify "myscript" "https://hooks.slack.com/services/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" "The script is complete!"
@@ -123,30 +176,32 @@ notify() {
   local -r TO="${2}"
   local -r MESSAGE="${3}"
 
-  # Check if the reciever is a Slack Webhook URL.
-  if [[ $TO =~ "hooks.slack.com" ]]; then
-     $(notify_slack "${FROM}" "${TO}" "${MESSAGE}" &> /dev/null)
-  fi
-}
+  # # Check if the receiver is a Webhook URL.
+  # if [[ $TO =~ "hooks.slack.com" ]]; then
+  #    $(notify_slack "${FROM}" "${TO}" "${MESSAGE}" &> /dev/null)
+  # elif [[ $TO =~ "discord.com" ]]; then
+  #    $(notify_discord "${FROM}" "${TO}" "${MESSAGE}" &> /dev/null)
+  # fi
 
-#######################################
-# Sends a message to a Slack.
-# Arguments: 
-#   The name of the sender, a string.
-#   The Webhook URL, a string.
-#   The message to be displayed, a string.
-# References:
-#   https://api.slack.com/messaging/webhooks
-# Example:
-#   notify_slack "myscript" "https://hooks.slack.com/services/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" "The script is complete!"
-#######################################
-notify_slack() {
-  local -r FROM="${1}"
-  local -r WEBHOOK_URL="${2}"
-  local -r MESSAGE="${3}"
-  
-  # Use plain text, as blocks using markdown are not properly supported yet.
-  curl -X POST -sH 'Content-type: application/json' --data "{'text':'${FROM}: ${MESSAGE}'}" "${WEBHOOK_URL}"
+  local total=0
+
+  case $TO in
+
+    *"discord.com"*)
+      total=$(notify_discord "${FROM}" "${TO}" "${MESSAGE}")
+      ;;
+
+    *"slack.com"*)
+      total=$(notify_slack "${FROM}" "${TO}" "${MESSAGE}")
+      ;;
+
+    *)
+      message "Unknown Webhook"
+      ;;
+  esac
+
+
+
 }
 
 #######################################

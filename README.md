@@ -65,6 +65,11 @@ bulkcp --dry-run data.csv
 ```
 This would process `data.csv` without any changes being made to the file system. Verbose output will be printed to the terminal.
 
+```bash
+bulkcp --notify https://discord.com/api/webhooks/1234567890/qwertyuiopasdfghjk data.csv
+```
+This would process `data.csv` and send a notification to the specified webhook upon completion.
+
 ## Options
 
 #### CSV file path
@@ -81,7 +86,7 @@ Flag to indicate that the CSV file **does not** have a header row.
 
 #### Notify `-t ` &nbsp; `--notify `
 
-Service to notify when script completes. Currently supports a Slack Webhook URL.
+Service to notify when script completes. Currently supports Slack and Discord Webhook URLs.
 
 #### Remote host `-h ` &nbsp; `--remote-host `
 
