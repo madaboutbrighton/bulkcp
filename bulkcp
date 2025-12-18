@@ -169,19 +169,12 @@ notify_discord() {
 #   The receiver, a string.
 #   The message to be displayed, a string.
 # Example:
-#   notify "myscript" "https://hooks.slack.com/services/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" "The script is complete!"
+#   notify "myscript" "https://hooks.slack.com/services/QWERTY123/POIUYTREWQ098ZX" "The script is complete!"
 #######################################
 notify() {
   local -r FROM="${1}"
   local -r TO="${2}"
   local -r MESSAGE="${3}"
-
-  # # Check if the receiver is a Webhook URL.
-  # if [[ $TO =~ "hooks.slack.com" ]]; then
-  #    $(notify_slack "${FROM}" "${TO}" "${MESSAGE}" &> /dev/null)
-  # elif [[ $TO =~ "discord.com" ]]; then
-  #    $(notify_discord "${FROM}" "${TO}" "${MESSAGE}" &> /dev/null)
-  # fi
 
   local total=0
 
@@ -199,9 +192,6 @@ notify() {
       message "Unknown Webhook"
       ;;
   esac
-
-
-
 }
 
 #######################################
