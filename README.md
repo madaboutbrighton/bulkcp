@@ -86,7 +86,7 @@ Flag to indicate that the CSV file **does not** have a header row.
 
 #### Notify `-t ` &nbsp; `--notify `
 
-Service to notify when script completes. Currently supports a Slack and Discord Webhook URLs.
+Service to notify when script completes. Currently supports Slack and Discord Webhook URLs.
 
 #### Remote host `-h ` &nbsp; `--remote-host `
 
